@@ -56,10 +56,6 @@ export default function App() {
   const [isOpen, setIsOpen] = useState(true);
   const [isOpen2, setIsOpen2] = useState(true);
 
-  const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
-  const avgUserRating = average(watched.map((movie) => movie.userRating));
-  const avgRuntime = average(watched.map((movie) => movie.runtime));
-
   function toggleButton() {
     setIsOpen((open) => !isOpen);
   }
@@ -80,12 +76,7 @@ export default function App() {
           <Button onClick={toggleButton2}>{isOpen2 ? "-" : "+"}</Button>
           {isOpen2 && (
             <>
-              <WatchedMovieDataInformation
-                watched={watched}
-                avgImdbRating={avgImdbRating}
-                avgUserRating={avgUserRating}
-                avgRuntime={avgRuntime}
-              />
+              <WatchedMovieDataInformation watched={watched} />
               <WatchedMovieList movies={watched} />
             </>
           )}
@@ -128,12 +119,10 @@ function WatchedMovie({ movie }) {
   );
 }
 
-function WatchedMovieDataInformation({
-  watched,
-  avgImdbRating,
-  avgUserRating,
-  avgRuntime,
-}) {
+function WatchedMovieDataInformation({ watched }) {
+  const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
+  const avgUserRating = average(watched.map((movie) => movie.userRating));
+  const avgRuntime = average(watched.map((movie) => movie.runtime));
   return (
     <div className="summary">
       <h2>Movies you watched</h2>
@@ -193,23 +182,39 @@ function Button({ children, onClick }) {
 }
 
 function Navigation({ movies }) {
-  const [query, setQuery] = useState("");
   return (
     <nav className="nav-bar">
-      <div className="logo">
-        <span role="img">🍿</span>
-        <h1>usePopcorn</h1>
-      </div>
-      <input
-        className="search"
-        type="text"
-        placeholder="Search movies..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      <p className="num-results">
-        Found <strong>{movies.length}</strong> results
-      </p>
+      <Logo />
+      <Search />
+      <NumberResults movies={movies} />
     </nav>
+  );
+}
+
+function Logo() {
+  return (
+    <div className="logo">
+      <span role="img">🍿</span>
+      <h1>usePopcorn</h1>
+    </div>
+  );
+}
+function Search() {
+  const [query, setQuery] = useState("");
+  return (
+    <input
+      className="search"
+      type="text"
+      placeholder="Search movies..."
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+    />
+  );
+}
+function NumberResults({ movies }) {
+  return (
+    <p className="num-results">
+      Found <strong>{movies.length}</strong> results
+    </p>
   );
 }

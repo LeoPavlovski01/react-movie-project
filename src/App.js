@@ -62,8 +62,9 @@ export default function App() {
         <NumberResults movies={movies} />
       </Navigation>
       <Main>
+        {/*Instead of the children we are using element prop.*/}
         <Box>
-          <MovieList movies={movies} />
+          <MovieList movies={movies}></MovieList>
         </Box>
         <Box>
           <WatchedMovieDataInformation watched={watched} />

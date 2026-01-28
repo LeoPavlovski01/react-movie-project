@@ -55,11 +55,21 @@ const KEY = "5288c005";
 export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const query = "interstellar";
 
   useEffect(function () {
-    fetch(`http://www.omdbapi.com/?apikey=${KEY}&s='lord_of_the_rings'`)
-      .then((res) => res.json())
-      .then((data) => setMovies(data.Search));
+    async function fetchMovies() {
+      setIsLoading(true);
+      const res = await fetch(
+        `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+      );
+      const data = await res.json();
+      setMovies(data.Search);
+      setIsLoading(false);
+    }
+    fetchMovies();
   }, []);
 
   return (
@@ -72,7 +82,7 @@ export default function App() {
       <Main>
         {/*Instead of the children we are using element prop.*/}
         <Box>
-          <MovieList movies={movies}></MovieList>
+          {isLoading ? <Loader /> : <MovieList movies={movies}></MovieList>}
         </Box>
         <Box>
           <WatchedMovieDataInformation watched={watched} />
@@ -183,11 +193,13 @@ function WatchedMovieDataInformation({ watched }) {
 
 function MovieList({ movies }) {
   return (
-    <ul className="list">
-      {movies.map((movie) => (
-        <Movie movie={movie} key={movie.imdbID} />
-      ))}
-    </ul>
+    <div>
+      <ul className="list">
+        {movies.map((movie) => (
+          <Movie movie={movie} key={movie.imdbID} />
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -212,6 +224,10 @@ function Button({ children, onClick }) {
       {children}
     </button>
   );
+}
+
+function Loader() {
+  return <p className="loader">Loading...</p>;
 }
 
 function Navigation({ children }) {

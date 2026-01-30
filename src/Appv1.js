@@ -181,6 +181,23 @@ function MovieDetails({ selectedId, handleCloseMovie, onAddWatched, watched }) {
   const [userRating, setUserRating] = useState("");
   const [averageRating, setAverageRating] = useState(0);
 
+  const countRef = useRef(0);
+
+  useEffect(
+    function () {
+      if (userRating) countRef.current = countRef.current + 1;
+    },
+    [userRating],
+  );
+
+  const isWatched = watched
+    .map((watchedMovie) => watchedMovie.imdbID)
+    .includes(selectedId);
+
+  const watchedUserRating = watched.find(
+    (movie) => movie.imdbID === selectedId,
+  )?.userRating;
+
   const {
     Title: title,
     Year: year,
@@ -218,6 +235,7 @@ function MovieDetails({ selectedId, handleCloseMovie, onAddWatched, watched }) {
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ").at(0)),
       userRating: userRating,
+      countRatingDecisions: countRef.current,
     };
 
     // If the same movie is in the list don't show the starts.
@@ -230,13 +248,6 @@ function MovieDetails({ selectedId, handleCloseMovie, onAddWatched, watched }) {
     // Check includes with the arrray which is curently selected
     handleCloseMovie();
   }
-  const isWatched = watched
-    .map((watchedMovie) => watchedMovie.imdbID)
-    .includes(selectedId);
-
-  const watchedUserRating = watched.find(
-    (movie) => movie.imdbID === selectedId,
-  )?.userRating;
 
   useEffect(
     function () {

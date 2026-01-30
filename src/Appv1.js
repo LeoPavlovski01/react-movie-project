@@ -8,12 +8,16 @@ const KEY = "5288c005";
 
 export default function App() {
   const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
 
+  // const [watched, setWatched] = useState([]);
+  const [watched, setWatched] = useState(function () {
+    const storedValue = localStorage.getItem("watched");
+    return JSON.parse(storedValue);
+  });
   function handleDeleteWatchedMovie(id) {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
@@ -25,7 +29,27 @@ export default function App() {
   }
   function handleAddWatch(movie) {
     setWatched((watchedMovie) => [...watchedMovie, movie]);
+    // Only string
+    localStorage.setItem("watched", JSON.stringify([...watched, movie]));
   }
+
+  useEffect(
+    function () {
+      localStorage.setItem("watched", JSON.stringify(watched));
+    },
+    [watched],
+  );
+
+  // useEffect(() => {
+  //   const id = setInterval(() => {
+  //     console.log(watched);
+  //   }, 3000);
+  //
+  //   return () => {
+  //     clearInterval(id);
+  //   };
+  // }, [watched]);
+  // Escape hatch
 
   useEffect(
     function () {
@@ -45,9 +69,12 @@ export default function App() {
           const data = await res.json();
           if (data.Response === "False") throw new Error("Movie not found");
           setMovies(data.Search);
+          setError("");
         } catch (err) {
-          console.error(err.message);
-          setError(err.message);
+          if (error.name !== "AbortError") {
+            console.log(err.message);
+            setError(err.message);
+          }
         } finally {
           setIsLoading(false);
         }
@@ -57,6 +84,7 @@ export default function App() {
         setError("");
         return;
       }
+      handleCloseMovie();
       fetchMovies();
       return function () {
         controller.abort();
@@ -151,6 +179,7 @@ function MovieDetails({ selectedId, handleCloseMovie, onAddWatched, watched }) {
   const [movie, setMovie] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState("");
+  const [averageRating, setAverageRating] = useState(0);
 
   const {
     Title: title,
@@ -165,7 +194,20 @@ function MovieDetails({ selectedId, handleCloseMovie, onAddWatched, watched }) {
     Genre: genre,
   } = movie;
 
-  console.log(title, year);
+  // Only initial state , on the initial render
+  // const [isTop, setIsTop] = useState(imdbRating > 8);
+  // console.log(isTop);
+  /*Use Derived state */
+  // useEffect(
+  //   function () {
+  //     setIsTop(imdbRating > 8);
+  //   },
+  //   [imdbRating],
+  // );
+  // console.log("isTop useEffect", isTop);
+
+  const isTop = imdbRating > 8;
+  console.log(isTop);
 
   function handleAdd() {
     const newWatchedMovie = {
@@ -180,9 +222,12 @@ function MovieDetails({ selectedId, handleCloseMovie, onAddWatched, watched }) {
 
     // If the same movie is in the list don't show the starts.
 
+    // setAverageRating(Number(imdbRating));
+    // // alert(averageRating);
+    // setAverageRating((avgRating) => (avgRating + userRating) / 2);
+
     onAddWatched(newWatchedMovie);
     // Check includes with the arrray which is curently selected
-    console.log("watched movies  : ", watched);
     handleCloseMovie();
   }
   const isWatched = watched
@@ -192,6 +237,22 @@ function MovieDetails({ selectedId, handleCloseMovie, onAddWatched, watched }) {
   const watchedUserRating = watched.find(
     (movie) => movie.imdbID === selectedId,
   )?.userRating;
+
+  useEffect(
+    function () {
+      function callBack(e) {
+        if (e.code === "Escape") {
+          handleCloseMovie();
+        }
+      }
+      // Keypress in react.
+      document.addEventListener("keydown", callBack);
+      return function () {
+        document.removeEventListener("keydown", callBack);
+      };
+    },
+    [handleCloseMovie],
+  );
 
   useEffect(
     function () {
@@ -243,6 +304,7 @@ function MovieDetails({ selectedId, handleCloseMovie, onAddWatched, watched }) {
               </p>
             </div>
           </header>
+          <p>{averageRating}</p>
 
           <section>
             <div className="rating">

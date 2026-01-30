@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
 import { useLocalStorageState } from "./useLocalStorageState";
+import { useKey } from "./useKey";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -188,21 +189,7 @@ function MovieDetails({ selectedId, handleCloseMovie, onAddWatched, watched }) {
     handleCloseMovie();
   }
 
-  useEffect(
-    function () {
-      function callBack(e) {
-        if (e.code === "Escape") {
-          handleCloseMovie();
-        }
-      }
-      // Keypress in react.
-      document.addEventListener("keydown", callBack);
-      return function () {
-        document.removeEventListener("keydown", callBack);
-      };
-    },
-    [handleCloseMovie],
-  );
+  useKey("Enter", handleCloseMovie);
 
   useEffect(
     function () {
@@ -400,28 +387,12 @@ function Logo() {
 // Selecting the search on the render. Dom manipulation 🚫.
 function Search({ query, setQuery }) {
   const inputElement = useRef(null);
-  // useEffect(function () {
-  //   const el = document.querySelector(".search");
-  //   console.log(el);
-  //   el.focus();
-  // }, []);
 
-  useEffect(
-    function () {
-      // console.log("input: ", inputElement.current);
-      function callback(e) {
-        if (document.activeElement === inputElement.current) return;
-        if (e.code === "Enter") {
-          inputElement.current.focus();
-          setQuery("");
-        }
-      }
-
-      document.addEventListener("keydown", callback);
-      return () => document.addEventListener("keydown", callback);
-    },
-    [setQuery],
-  );
+  useKey("Enter", function () {
+    if (document.activeElement === inputElement.current) return;
+    inputElement.current.focus();
+    setQuery("");
+  });
 
   return (
     <input
